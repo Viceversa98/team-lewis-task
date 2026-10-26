@@ -12,6 +12,8 @@ SQLite and the portrait files on disk sit under that app as the stand-in for thi
 
 Run it with `npm run dev`. Tests are `npm test`.
 
+On Netlify, set `SESSION_SECRET` in the site environment. `/` sends you to `/login`. SQLite and portraits use `data/` locally, or a temp directory if that folder is not writable.
+
 ## Assumptions
 
 - Local SQLite and disk files stand in for a hosted database and object storage.
