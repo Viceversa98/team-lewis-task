@@ -9,16 +9,23 @@ export const SESSION_COOKIE = "portrait_session";
 
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 14;
 
+let memorySecret: string | null = null;
+
 const getSecret = () => {
   const fromEnv = process.env.SESSION_SECRET;
   if (fromEnv) return fromEnv;
 
   const file = path.join(getDataRoot(), "session.secret");
-  if (!fs.existsSync(file)) {
-    fs.mkdirSync(getDataRoot(), { recursive: true });
-    fs.writeFileSync(file, randomBytes(32).toString("hex"), { encoding: "utf8" });
+  try {
+    if (!fs.existsSync(file)) {
+      fs.mkdirSync(getDataRoot(), { recursive: true });
+      fs.writeFileSync(file, randomBytes(32).toString("hex"), { encoding: "utf8" });
+    }
+    return fs.readFileSync(file, "utf8").trim();
+  } catch {
+    memorySecret ??= randomBytes(32).toString("hex");
+    return memorySecret;
   }
-  return fs.readFileSync(file, "utf8").trim();
 };
 
 const sign = (body: string) => {
@@ -75,11 +82,15 @@ export const clearSession = async () => {
 
 export const getCurrentUser = async (): Promise<PublicUser | null> => {
   await connection();
-  const jar = await cookies();
-  const token = jar.get(SESSION_COOKIE)?.value;
-  if (!token) return null;
+  try {
+    const jar = await cookies();
+    const token = jar.get(SESSION_COOKIE)?.value;
+    if (!token) return null;
 
-  const userId = readUserId(token, Date.now());
-  if (!userId) return null;
-  return findUserById(userId);
+    const userId = readUserId(token, Date.now());
+    if (!userId) return null;
+    return findUserById(userId);
+  } catch {
+    return null;
+  }
 };

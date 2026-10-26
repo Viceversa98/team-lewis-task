@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import Database from "better-sqlite3";
 
@@ -20,7 +21,26 @@ export type PortraitRecord = {
   filePath: string;
 };
 
-let dataRoot = path.join(process.cwd(), "data");
+const canWrite = (directory: string) => {
+  try {
+    fs.mkdirSync(directory, { recursive: true });
+    fs.accessSync(directory, fs.constants.W_OK);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const resolveDataRoot = () => {
+  const fromEnv = process.env.DATA_DIR;
+  if (fromEnv) return fromEnv;
+
+  const local = path.join(process.cwd(), "data");
+  if (canWrite(local)) return local;
+  return path.join(os.tmpdir(), "portrait-bench");
+};
+
+let dataRoot = resolveDataRoot();
 let database: Database.Database | null = null;
 
 export const getDataRoot = () => dataRoot;
