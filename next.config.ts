@@ -1,11 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  cacheComponents: true,
+  serverExternalPackages: ["better-sqlite3"],
   experimental: {
     agentFeedback: true,
+    cachedNavigations: false,
+    reactDebugChannel: false,
+    serverActions: {
+      bodySizeLimit: "8mb",
+    },
   },
-  cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
     rules: {

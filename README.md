@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portrait bench
 
-## Getting Started
+Register, upload a portrait, and read a smile score. This version is a Next.js app. The browser finds the face. The server recomputes the score from the landmarks and stores the portrait.
 
-First, run the development server:
+## Architecture
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+![Next.js app stack](docs/architecture.svg)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The editable board is [docs/architecture.excalidraw](docs/architecture.excalidraw).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+SQLite and the portrait files on disk sit under that app as the stand-in for this version. They live in `data/`, which is gitignored. A missing face or a bad file stops in the server action and never reaches storage.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run it with `npm run dev`. Tests are `npm test`.
 
-## Learn More
+## Assumptions
 
-To learn more about Next.js, take a look at the following resources:
+- Local SQLite and disk files stand in for a hosted database and object storage.
+- The browser finds the face with MediaPipe Face Landmarker. The model and WASM files are vendored in `public/models` so the demo does not need a live CDN.
+- The server does not trust a client-sent score. It checks the landmark payload and recomputes the 0–100 score.
+- One account can have many portraits.
+- A portrait must be a jpeg, png, or webp, sniffed from the file bytes, and at most 5 MB.
+- Zod, an ORM, Amazon RDS, object storage, TanStack Query, and the guide agent are next steps. They are not behavior of this version.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Next steps
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+![Future app: state, Zod, ORM, data stores, guide agent](docs/future-architecture.svg)
 
-## Deploy on Vercel
+The editable board is [docs/future-architecture.excalidraw](docs/future-architecture.excalidraw).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Server actions stay the only write path. Zod checks account fields, the landmark payload, and file metadata before any write. Drizzle or Prisma sits between those actions and the database. Amazon RDS (Postgres) replaces SQLite for users and portrait rows. S3-compatible object storage (AWS S3, Cloudflare R2, or MinIO) replaces local files.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Client UI state and server data stay separate. Zustand remains the UI control store. TanStack Query caches portraits and the signed-in account and refreshes them after actions. The ORM is the server data layer. Components do not query RDS or object storage themselves.
+
+The guide agent lives inside the Next.js app. It walks the bench in order: create an account, upload a portrait, read the smile score. Each step points at the real control and waits while the person uses it. The agent can open the form, focus the upload, and explain the score that just came back.
+
+## With more time
+
+The future diagram carries state, Zod, the ORM, RDS, object storage, and the guide agent. It does not show four further pieces: server-side face detection so landmarks cannot be forged, upload rate limits, password reset, and calibrating the 0–100 score against labeled portraits.
