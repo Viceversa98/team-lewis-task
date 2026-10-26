@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="820" viewBox="0 0 880 820" role="img" aria-labelledby="title desc">
+  <title id="title">Future app: state, Zod, ORM, data stores, guide agent</title>
+  <desc id="desc">Later Next.js app. Server actions stay the write path, then Zod, Drizzle or Prisma, Amazon RDS, and S3-compatible storage. Zustand and TanStack Query stay separate from the ORM. A guide agent walks the bench.</desc>
+  <rect width="880" height="820" fill="#E4E7EC"/>
+  <rect x="28" y="24" width="824" height="772" fill="#F4F6F8" stroke="#101418" stroke-width="2"/>
+  <text x="52" y="64" fill="#101418" font-family="Segoe UI, Helvetica, sans-serif" font-size="24" font-weight="650">Next.js app, later</text>
+  <text x="52" y="92" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="15">None of this is in the first build.</text>
+
+  <text x="52" y="128" fill="#0E4D6C" font-family="Segoe UI, Helvetica, sans-serif" font-size="14" font-weight="650">Data path</text>
+  <rect x="52" y="140" width="380" height="58" fill="#E4E7EC" stroke="#0E4D6C" stroke-width="2"/>
+  <text x="68" y="174" fill="#101418" font-family="Segoe UI, Helvetica, sans-serif" font-size="15">Server actions, the only write path</text>
+  <line x1="242" y1="198" x2="242" y2="214" stroke="#0E4D6C" stroke-width="2"/>
+  <polygon points="236,214 248,214 242,222" fill="#0E4D6C"/>
+
+  <rect x="52" y="224" width="380" height="58" fill="#E4E7EC" stroke="#B7C0C8"/>
+  <text x="68" y="248" fill="#101418" font-family="Segoe UI, Helvetica, sans-serif" font-size="15">Zod</text>
+  <text x="68" y="268" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="13">Account fields, landmarks, file metadata</text>
+  <line x1="242" y1="282" x2="242" y2="298" stroke="#0E4D6C" stroke-width="2"/>
+  <polygon points="236,298 248,298 242,306" fill="#0E4D6C"/>
+
+  <rect x="52" y="308" width="380" height="58" fill="#E4E7EC" stroke="#B7C0C8"/>
+  <text x="68" y="332" fill="#101418" font-family="Segoe UI, Helvetica, sans-serif" font-size="15">Drizzle or Prisma</text>
+  <text x="68" y="352" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="13">First build keeps parameterized SQL</text>
+  <line x1="242" y1="366" x2="242" y2="382" stroke="#0E4D6C" stroke-width="2"/>
+  <polygon points="236,382 248,382 242,390" fill="#0E4D6C"/>
+
+  <rect x="52" y="392" width="380" height="58" fill="#E4E7EC" stroke="#B7C0C8"/>
+  <text x="68" y="416" fill="#101418" font-family="Segoe UI, Helvetica, sans-serif" font-size="15">Amazon RDS (Postgres)</text>
+  <text x="68" y="436" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="13">Users and portrait rows, replacing SQLite</text>
+  <line x1="242" y1="450" x2="242" y2="466" stroke="#0E4D6C" stroke-width="2"/>
+  <polygon points="236,466 248,466 242,474" fill="#0E4D6C"/>
+
+  <rect x="52" y="476" width="380" height="64" fill="#E4E7EC" stroke="#B7C0C8"/>
+  <text x="68" y="502" fill="#101418" font-family="Segoe UI, Helvetica, sans-serif" font-size="15">S3-compatible object storage</text>
+  <text x="68" y="522" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="13">AWS S3, Cloudflare R2, or MinIO</text>
+
+  <text x="468" y="128" fill="#0E4D6C" font-family="Segoe UI, Helvetica, sans-serif" font-size="14" font-weight="650">State, kept separate</text>
+  <rect x="468" y="140" width="352" height="150" fill="#E4E7EC" stroke="#B7C0C8"/>
+  <text x="484" y="168" fill="#101418" font-family="Segoe UI, Helvetica, sans-serif" font-size="15" font-weight="650">Client</text>
+  <text x="484" y="194" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="13">Zustand stays the UI control store.</text>
+  <text x="484" y="216" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="13">TanStack Query caches portraits and</text>
+  <text x="484" y="236" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="13">the signed-in account, and refreshes</text>
+  <text x="484" y="256" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="13">them after actions.</text>
+
+  <rect x="468" y="310" width="352" height="120" fill="#E4E7EC" stroke="#B7C0C8"/>
+  <text x="484" y="338" fill="#101418" font-family="Segoe UI, Helvetica, sans-serif" font-size="15" font-weight="650">Server</text>
+  <text x="484" y="364" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="13">The ORM is the server data layer.</text>
+  <text x="484" y="386" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="13">Components do not query RDS or</text>
+  <text x="484" y="406" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="13">object storage themselves.</text>
+
+  <rect x="52" y="572" width="768" height="176" fill="#E4E7EC" stroke="#0E4D6C" stroke-width="2"/>
+  <text x="68" y="604" fill="#101418" font-family="Segoe UI, Helvetica, sans-serif" font-size="16" font-weight="650">Guide agent</text>
+  <text x="68" y="632" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="14">Walks the bench in order: create an account, upload a portrait, read the smile score.</text>
+  <text x="68" y="656" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="14">Each step points at the real control and waits while the person uses it.</text>
+  <text x="68" y="680" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="14">It can open the form, focus the upload, and explain the score that just came back.</text>
+  <text x="68" y="712" fill="#5E6A75" font-family="Segoe UI, Helvetica, sans-serif" font-size="14">A reply in a chat panel is not the feature.</text>
+</svg>

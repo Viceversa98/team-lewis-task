@@ -1,26 +1,129 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "@heroui/styles";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-studio: #243038;
+  --color-studio-muted: #9aa7b2;
+  --color-studio-line: #3d4a53;
+  --color-paper: #f3f5f7;
+  --color-ink: #14191e;
+  --color-rebate: #5c6872;
+  --color-cyanotype: #1b6f8c;
+  --color-well: #12181d;
+  --color-line: #d4dbe1;
+  --color-glow: #8ec9e0;
+  --color-danger: #b42318;
+  --font-sans: var(--font-public-sans), ui-sans-serif, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes score-write {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
   }
 }
 
-body {
-  background: var(--background);
+.score-write {
+  animation: score-write 720ms steps(12, end) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .score-write {
+    animation: none;
+  }
+}
+
+:root,
+.light,
+[data-theme="light"] {
+  --accent: #1b6f8c;
+  --accent-hover: #155a73;
+  --accent-foreground: #f3f5f7;
+  --background: #243038;
+  --foreground: #14191e;
+  --surface: #f3f5f7;
+  --surface-foreground: #14191e;
+  --muted: #5c6872;
+  --default: #e4eaef;
+  --default-hover: #d5dde4;
+  --default-foreground: #14191e;
+  --field-background: #ffffff;
+  --field-foreground: #14191e;
+  --field-placeholder: #5c6872;
+  --field-border: #6b7782;
+  --field-border-hover: #3d4a53;
+  --field-border-focus: #1b6f8c;
+  --border-width-field: 1px;
+  --border: #d4dbe1;
+  --separator: #d4dbe1;
+  --focus: #1b6f8c;
+  --link: #1b6f8c;
+  --danger: #b42318;
+  --danger-foreground: #ffffff;
+  --radius: 2px;
+  --field-radius: 2px;
+  --field-shadow: none;
+  --surface-shadow: none;
+  --overlay-shadow: none;
+  color-scheme: light;
+}
+
+.button {
+  min-height: 2.75rem;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.button:active,
+.button[data-pressed="true"] {
+  transform: none;
+}
+
+.input {
+  min-height: 2.75rem;
+  font-size: 1rem;
+}
+
+.alert {
+  border: 1px solid var(--danger);
+  box-shadow: none;
+}
+
+.alert__description {
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.field-error[data-visible="true"] {
+  color: var(--danger);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.meter__track {
+  background-color: var(--color-line);
+}
+
+.meter__fill {
+  background-color: var(--color-cyanotype);
+}
+
+@layer base {
+  html,
+  body {
+    background: var(--color-studio);
+    color: var(--color-paper);
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-glow);
+    outline-offset: 3px;
+  }
 }
