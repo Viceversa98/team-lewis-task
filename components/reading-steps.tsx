@@ -1,8 +1,9 @@
-export type ReadingStage = "add" | "reading" | "scored";
+export type ReadingStage = "add" | "reading" | "live" | "scored";
 
 const copy: Record<ReadingStage, string> = {
-  add: "Drop a portrait on the paper. The reading starts when it lands.",
+  add: "Open the camera to watch the smile score, or drop a portrait.",
   reading: "Reading the face.",
+  live: "Smile score is live. Capture when it looks right.",
   scored: "Smile score is on the print.",
 };
 

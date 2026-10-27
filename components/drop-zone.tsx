@@ -13,9 +13,16 @@ type DropZoneProps = {
   imageAlt: string;
   reading: boolean;
   onFile: (file: File) => void;
+  onReadLive: () => void;
 };
 
-export const DropZone = ({ imageUrl, imageAlt, reading, onFile }: DropZoneProps) => {
+export const DropZone = ({
+  imageUrl,
+  imageAlt,
+  reading,
+  onFile,
+  onReadLive,
+}: DropZoneProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const dragging = useBenchStore((state) => state.dragging);
   const setDragging = useBenchStore((state) => state.setDragging);
@@ -66,12 +73,21 @@ export const DropZone = ({ imageUrl, imageAlt, reading, onFile }: DropZoneProps)
           <div className="grid gap-1">
             <p className="font-display text-3xl tracking-tight text-paper">Add a portrait</p>
             <p className="max-w-[36ch] text-sm leading-6 text-studio-muted">
-              Drop it on the paper. The reading starts as soon as it lands.
+              Open the camera to watch the smile score, or drop a file. Capture when the number looks right.
             </p>
           </div>
-          <Button variant="primary" onPress={handleChoose} className={paperButtonClass}>
-            Choose a portrait
-          </Button>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Button variant="primary" onPress={onReadLive} className={paperButtonClass}>
+              Read live
+            </Button>
+            <Button
+              variant="ghost"
+              onPress={handleChoose}
+              className="min-h-11 text-paper [--button-fg:var(--color-paper)]"
+            >
+              Choose a portrait
+            </Button>
+          </div>
           <p className="text-sm text-studio-muted">jpeg, png, or webp, up to 5 MB</p>
         </div>
       )}
@@ -87,14 +103,19 @@ export const DropZone = ({ imageUrl, imageAlt, reading, onFile }: DropZoneProps)
       ) : null}
 
       {imageUrl && !reading ? (
-        <Button
-          variant="primary"
-          size="sm"
-          onPress={handleChoose}
-          className={`absolute right-3 bottom-3 ${paperButtonClass}`}
-        >
-          Choose another portrait
-        </Button>
+        <div className="absolute right-3 bottom-3 flex flex-wrap justify-end gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onPress={onReadLive}
+            className="min-h-11 text-paper [--button-fg:var(--color-paper)]"
+          >
+            Read live
+          </Button>
+          <Button variant="primary" size="sm" onPress={handleChoose} className={paperButtonClass}>
+            Choose another portrait
+          </Button>
+        </div>
       ) : null}
 
       {dragging ? (

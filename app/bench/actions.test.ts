@@ -160,4 +160,17 @@ describe("readSmile", () => {
     expect(row.score).toBe(34);
     expect(fs.existsSync(path.join(root, row.filePath))).toBe(true);
   });
+
+  it("stores a tensorflow 468-point mesh and the recomputed score", async () => {
+    await signIn();
+    const formData = new FormData();
+    formData.set("portrait", jpeg());
+    formData.set("landmarks", JSON.stringify(neutralFace().slice(0, 468)));
+
+    const result = await readSmile(initialReadSmileState, formData);
+
+    expect(result.error).toBeNull();
+    expect(result.score).toBe(34);
+    expect(countPortraits()).toBe(1);
+  });
 });

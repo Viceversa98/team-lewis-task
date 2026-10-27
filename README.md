@@ -1,6 +1,6 @@
 # Portrait bench
 
-Register, upload a portrait, and read a smile score. This version is a Next.js app. The browser finds the face. The server recomputes the score from the landmarks and stores the portrait.
+Register, point a camera at a face or upload a portrait, and read a smile score. This version is a Next.js app. The browser finds the face. The server recomputes the score from the landmarks and stores the portrait.
 
 ## Architecture
 
@@ -17,8 +17,9 @@ On Netlify, set `SESSION_SECRET` in the site environment. `/` sends you to `/log
 ## Assumptions
 
 - Local SQLite and disk files stand in for a hosted database and object storage.
-- The browser finds the face with MediaPipe Face Landmarker. The model and WASM files are vendored in `public/models` so the demo does not need a live CDN.
-- The server does not trust a client-sent score. It checks the landmark payload and recomputes the 0–100 score.
+- Live camera and dropped files both use MediaPipe Face Landmarker in the browser. The live number updates from blendshapes while you watch. Capture takes the current frame. The live number is not stored.
+- The model and WASM files are vendored in `public/models`.
+- The server does not trust a client-sent score. It checks the landmark payload (468 or 478 points) and recomputes the 0–100 score.
 - One account can have many portraits.
 - A portrait must be a jpeg, png, or webp, sniffed from the file bytes, and at most 5 MB.
 - Zod, an ORM, Amazon RDS, object storage, TanStack Query, and the guide agent are next steps. They are not behavior of this version.
