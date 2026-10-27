@@ -9,7 +9,7 @@ const BenchContent = async () => {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const readings = listPortraits(user.id).map((portrait) => ({
+  const readings = (await listPortraits(user.id)).map((portrait) => ({
     id: portrait.id,
     score: portrait.score,
     createdAt: portrait.createdAt,

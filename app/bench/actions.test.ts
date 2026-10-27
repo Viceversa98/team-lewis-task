@@ -57,8 +57,8 @@ const jpeg = () => new File([Uint8Array.from([0xff, 0xd8, 0xff, 0xd9])], "portra
   type: "image/jpeg",
 });
 
-const countPortraits = () => {
-  const row = getDb()
+const countPortraits = async () => {
+  const row = (await getDb())
     .prepare(`SELECT COUNT(*) AS count FROM portraits`)
     .get() as { count: number };
   return row.count;
@@ -66,7 +66,7 @@ const countPortraits = () => {
 
 const signIn = async () => {
   const { hash, salt } = hashPassword("correct-horse");
-  const user = createUser({
+  const user = await createUser({
     name: "Amina Cole",
     email: "amina@example.com",
     passwordHash: hash,
@@ -104,7 +104,7 @@ describe("readSmile", () => {
       error: SIGN_IN_TO_UPLOAD,
       readingId: null,
     });
-    expect(countPortraits()).toBe(0);
+    expect(await countPortraits()).toBe(0);
     expect(fs.existsSync(path.join(getDataRoot(), "portraits"))).toBe(false);
   });
 
@@ -118,7 +118,7 @@ describe("readSmile", () => {
 
     expect(result.error).toBe(NO_FACE_MESSAGE);
     expect(result.score).toBeNull();
-    expect(countPortraits()).toBe(0);
+    expect(await countPortraits()).toBe(0);
     expect(fs.existsSync(path.join(root, "portraits"))).toBe(false);
   });
 
@@ -134,7 +134,7 @@ describe("readSmile", () => {
     const result = await readSmile(initialReadSmileState, formData);
 
     expect(result.error).toBe(USE_IMAGE);
-    expect(countPortraits()).toBe(0);
+    expect(await countPortraits()).toBe(0);
   });
 
   it("stores the portrait and the recomputed score", async () => {
@@ -148,9 +148,9 @@ describe("readSmile", () => {
     expect(result.error).toBeNull();
     expect(result.score).toBe(34);
     expect(result.readingId).toBeGreaterThan(0);
-    expect(countPortraits()).toBe(1);
+    expect(await countPortraits()).toBe(1);
 
-    const row = getDb()
+    const row = (await getDb())
       .prepare(
         `SELECT user_id AS userId, score, file_path AS filePath FROM portraits WHERE id = ?`,
       )
@@ -171,6 +171,6 @@ describe("readSmile", () => {
 
     expect(result.error).toBeNull();
     expect(result.score).toBe(34);
-    expect(countPortraits()).toBe(1);
+    expect(await countPortraits()).toBe(1);
   });
 });

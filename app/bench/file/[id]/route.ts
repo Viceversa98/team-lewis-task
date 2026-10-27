@@ -18,7 +18,7 @@ export const GET = async (
     return new Response("Portrait not found.", { status: 404 });
   }
 
-  const portrait = getPortraitForUser(user.id, portraitId);
+  const portrait = await getPortraitForUser(user.id, portraitId);
   if (!portrait) {
     return new Response("Portrait not found.", { status: 404 });
   }

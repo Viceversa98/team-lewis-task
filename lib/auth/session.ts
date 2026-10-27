@@ -76,6 +76,7 @@ export const createSession = async (userId: number) => {
 };
 
 export const clearSession = async () => {
+  await connection();
   const jar = await cookies();
   jar.delete(SESSION_COOKIE);
 };
@@ -89,7 +90,7 @@ export const getCurrentUser = async (): Promise<PublicUser | null> => {
 
     const userId = readUserId(token, Date.now());
     if (!userId) return null;
-    return findUserById(userId);
+    return await findUserById(userId);
   } catch {
     return null;
   }

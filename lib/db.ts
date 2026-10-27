@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import Database from "better-sqlite3";
+import { createRequire } from "node:module";
+import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic } from "sql.js";
 
 export type PublicUser = {
   id: number;
@@ -20,6 +21,18 @@ export type PortraitRecord = {
   createdAt: string;
   filePath: string;
 };
+
+type Statement = {
+  get: (...params: unknown[]) => unknown;
+  all: (...params: unknown[]) => unknown[];
+  run: (...params: unknown[]) => { lastInsertRowid: number };
+};
+
+export type AppDatabase = {
+  prepare: (sql: string) => Statement;
+};
+
+const require = createRequire(import.meta.url);
 
 const canWrite = (directory: string) => {
   try {
@@ -40,27 +53,35 @@ const resolveDataRoot = () => {
   return path.join(os.tmpdir(), "portrait-bench");
 };
 
+const dbPath = () => path.join(dataRoot, "portrait.sqlite");
+
+const wasmPath = () => {
+  try {
+    return require.resolve("sql.js/dist/sql-wasm.wasm");
+  } catch {
+    return path.join(process.cwd(), "node_modules", "sql.js", "dist", "sql-wasm.wasm");
+  }
+};
+
 let dataRoot = resolveDataRoot();
-let database: Database.Database | null = null;
+let engine: SqlJsStatic | null = null;
+let database: SqlJsDatabase | null = null;
+let opening: Promise<SqlJsDatabase> | null = null;
 
 export const getDataRoot = () => dataRoot;
 
 export const setDataRoot = (nextRoot: string) => {
-  if (database) {
-    database.close();
-    database = null;
-  }
+  closeDatabase();
   dataRoot = nextRoot;
 };
 
-export const closeDatabase = () => {
-  if (!database) return;
-  database.close();
-  database = null;
+const persist = (db: SqlJsDatabase) => {
+  fs.mkdirSync(dataRoot, { recursive: true });
+  fs.writeFileSync(dbPath(), Buffer.from(db.export()));
 };
 
-const migrate = (db: Database.Database) => {
-  db.exec(`
+const migrate = (db: SqlJsDatabase) => {
+  db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -81,97 +102,189 @@ const migrate = (db: Database.Database) => {
   `);
 };
 
-export const getDb = () => {
-  if (database) return database;
-  fs.mkdirSync(dataRoot, { recursive: true });
-  database = new Database(path.join(dataRoot, "portrait.sqlite"));
-  database.pragma("journal_mode = WAL");
-  database.pragma("foreign_keys = ON");
-  migrate(database);
-  return database;
+const loadEngine = async () => {
+  if (engine) return engine;
+  const wasmBinary = fs.readFileSync(wasmPath());
+  engine = await initSqlJs({ wasmBinary });
+  return engine;
 };
 
-export const isUniqueConstraint = (error: unknown) =>
-  typeof error === "object" &&
-  error !== null &&
-  "code" in error &&
-  (error as { code: unknown }).code === "SQLITE_CONSTRAINT_UNIQUE";
+const openDatabase = async () => {
+  const sql = await loadEngine();
+  fs.mkdirSync(dataRoot, { recursive: true });
+  const file = dbPath();
+  const db = fs.existsSync(file)
+    ? new sql.Database(fs.readFileSync(file))
+    : new sql.Database();
+  migrate(db);
+  persist(db);
+  return db;
+};
 
-export const createUser = (input: {
+const ensureDb = async () => {
+  if (database) return database;
+  if (!opening) {
+    opening = openDatabase()
+      .then((db) => {
+        database = db;
+        opening = null;
+        return db;
+      })
+      .catch((error: unknown) => {
+        opening = null;
+        throw error;
+      });
+  }
+  return opening;
+};
+
+const lastInsertRowid = (db: SqlJsDatabase) => {
+  const result = db.exec("SELECT last_insert_rowid() AS id");
+  return Number(result[0]?.values[0]?.[0] ?? 0);
+};
+
+const bind = (db: SqlJsDatabase, sql: string, params: unknown[]) => {
+  const statement = db.prepare(sql);
+  if (params.length > 0) statement.bind(params);
+  return statement;
+};
+
+const getRow = (db: SqlJsDatabase, sql: string, params: unknown[]) => {
+  const statement = bind(db, sql, params);
+  try {
+    if (!statement.step()) return undefined;
+    return statement.getAsObject();
+  } finally {
+    statement.free();
+  }
+};
+
+const allRows = (db: SqlJsDatabase, sql: string, params: unknown[]) => {
+  const statement = bind(db, sql, params);
+  const rows: Record<string, unknown>[] = [];
+  try {
+    while (statement.step()) rows.push(statement.getAsObject());
+    return rows;
+  } finally {
+    statement.free();
+  }
+};
+
+const runSql = (db: SqlJsDatabase, sql: string, params: unknown[]) => {
+  const statement = bind(db, sql, params);
+  try {
+    statement.step();
+    persist(db);
+    return { lastInsertRowid: lastInsertRowid(db) };
+  } finally {
+    statement.free();
+  }
+};
+
+export const closeDatabase = () => {
+  if (database) {
+    persist(database);
+    database.close();
+  }
+  database = null;
+  opening = null;
+};
+
+export const getDb = async (): Promise<AppDatabase> => {
+  const db = await ensureDb();
+  return {
+    prepare: (sql: string) => ({
+      get: (...params: unknown[]) => getRow(db, sql, params),
+      all: (...params: unknown[]) => allRows(db, sql, params),
+      run: (...params: unknown[]) => runSql(db, sql, params),
+    }),
+  };
+};
+
+export const isUniqueConstraint = (error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes("UNIQUE");
+};
+
+export const createUser = async (input: {
   name: string;
   email: string;
   passwordHash: string;
   salt: string;
-}): PublicUser => {
-  const result = getDb()
-    .prepare(
-      `INSERT INTO users (name, email, password_hash, salt) VALUES (?, ?, ?, ?)`,
-    )
-    .run(input.name, input.email, input.passwordHash, input.salt);
+}): Promise<PublicUser> => {
+  const db = await ensureDb();
+  const result = runSql(
+    db,
+    `INSERT INTO users (name, email, password_hash, salt) VALUES (?, ?, ?, ?)`,
+    [input.name, input.email, input.passwordHash, input.salt],
+  );
 
   return {
-    id: Number(result.lastInsertRowid),
+    id: result.lastInsertRowid,
     name: input.name,
     email: input.email,
   };
 };
 
-export const findUserByEmail = (email: string): StoredUser | null => {
-  const row = getDb()
-    .prepare(
-      `SELECT id, name, email, password_hash AS passwordHash, salt
-       FROM users WHERE email = ?`,
-    )
-    .get(email) as StoredUser | undefined;
-
+export const findUserByEmail = async (email: string): Promise<StoredUser | null> => {
+  const db = await ensureDb();
+  const row = getRow(
+    db,
+    `SELECT id, name, email, password_hash AS passwordHash, salt
+     FROM users WHERE email = ?`,
+    [email],
+  ) as StoredUser | undefined;
   return row ?? null;
 };
 
-export const findUserById = (id: number): PublicUser | null => {
-  const row = getDb()
-    .prepare(`SELECT id, name, email FROM users WHERE id = ?`)
-    .get(id) as PublicUser | undefined;
-
+export const findUserById = async (id: number): Promise<PublicUser | null> => {
+  const db = await ensureDb();
+  const row = getRow(
+    db,
+    `SELECT id, name, email FROM users WHERE id = ?`,
+    [id],
+  ) as PublicUser | undefined;
   return row ?? null;
 };
 
-export const insertPortrait = (input: {
+export const insertPortrait = async (input: {
   userId: number;
   filePath: string;
   score: number;
   createdAt: string;
 }) => {
-  const result = getDb()
-    .prepare(
-      `INSERT INTO portraits (user_id, file_path, score, created_at)
-       VALUES (?, ?, ?, ?)`,
-    )
-    .run(input.userId, input.filePath, input.score, input.createdAt);
-
-  return Number(result.lastInsertRowid);
+  const db = await ensureDb();
+  return runSql(
+    db,
+    `INSERT INTO portraits (user_id, file_path, score, created_at)
+     VALUES (?, ?, ?, ?)`,
+    [input.userId, input.filePath, input.score, input.createdAt],
+  ).lastInsertRowid;
 };
 
-export const listPortraits = (userId: number): PortraitRecord[] =>
-  getDb()
-    .prepare(
-      `SELECT id, score, created_at AS createdAt, file_path AS filePath
-       FROM portraits
-       WHERE user_id = ?
-       ORDER BY created_at DESC, id DESC`,
-    )
-    .all(userId) as PortraitRecord[];
+export const listPortraits = async (userId: number): Promise<PortraitRecord[]> => {
+  const db = await ensureDb();
+  return allRows(
+    db,
+    `SELECT id, score, created_at AS createdAt, file_path AS filePath
+     FROM portraits
+     WHERE user_id = ?
+     ORDER BY created_at DESC, id DESC`,
+    [userId],
+  ) as PortraitRecord[];
+};
 
-export const getPortraitForUser = (
+export const getPortraitForUser = async (
   userId: number,
   portraitId: number,
-): PortraitRecord | null => {
-  const row = getDb()
-    .prepare(
-      `SELECT id, score, created_at AS createdAt, file_path AS filePath
-       FROM portraits
-       WHERE id = ? AND user_id = ?`,
-    )
-    .get(portraitId, userId) as PortraitRecord | undefined;
-
+): Promise<PortraitRecord | null> => {
+  const db = await ensureDb();
+  const row = getRow(
+    db,
+    `SELECT id, score, created_at AS createdAt, file_path AS filePath
+     FROM portraits
+     WHERE id = ? AND user_id = ?`,
+    [portraitId, userId],
+  ) as PortraitRecord | undefined;
   return row ?? null;
 };

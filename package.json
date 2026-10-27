@@ -13,15 +13,14 @@
     "@heroui/react": "^3.2.6",
     "@heroui/styles": "^3.2.6",
     "@mediapipe/tasks-vision": "^1.1.1",
-    "better-sqlite3": "^13.0.3",
     "next": "16.4.3",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "sql.js": "^1.15.2",
     "zustand": "^5.0.16"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
-    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

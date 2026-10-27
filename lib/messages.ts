@@ -43,3 +43,6 @@ export const EMAIL_TAKEN =
 
 export const SIGN_IN_FAILED =
   "Email or password does not match. Try again, or create an account.";
+
+export const STORE_FAILED =
+  "The account store did not start. Try again in a moment.";

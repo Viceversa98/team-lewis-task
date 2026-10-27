@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { initialAccountState, type AccountState } from "@/lib/auth/account-state";
 import { hashPassword } from "@/lib/auth/password";
 import { createSession } from "@/lib/auth/session";
@@ -10,6 +11,7 @@ import {
   ENTER_NAME,
   NAME_LONG,
   PASSWORD_LONG,
+  STORE_FAILED,
   USE_EMAIL,
   USE_PASSWORD,
 } from "@/lib/messages";
@@ -31,15 +33,20 @@ export const register = async (
   if (password.length < 8) return { error: USE_PASSWORD, values };
   if (password.length > 200) return { error: PASSWORD_LONG, values };
 
+  await connection();
   const { hash, salt } = hashPassword(password);
   let userId = 0;
   try {
-    userId = createUser({ name, email, passwordHash: hash, salt }).id;
+    userId = (await createUser({ name, email, passwordHash: hash, salt })).id;
   } catch (error) {
     if (isUniqueConstraint(error)) return { error: EMAIL_TAKEN, values };
-    throw error;
+    return { error: STORE_FAILED, values };
   }
 
-  await createSession(userId);
+  try {
+    await createSession(userId);
+  } catch {
+    return { error: STORE_FAILED, values };
+  }
   redirect("/bench");
 };

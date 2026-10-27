@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  cacheComponents: true,
-  serverExternalPackages: ["better-sqlite3"],
+  cacheComponents: false,
+  serverExternalPackages: ["sql.js"],
   experimental: {
     agentFeedback: true,
     cachedNavigations: false,
@@ -11,7 +11,6 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "8mb",
     },
   },
-  partialPrefetching: true,
   turbopack: {
     rules: {
       "*.css": {
