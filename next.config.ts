@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   cacheComponents: false,
-  serverExternalPackages: ["sql.js"],
   experimental: {
     agentFeedback: true,
     cachedNavigations: false,
