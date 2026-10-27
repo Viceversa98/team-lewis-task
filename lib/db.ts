@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { createRequire } from "node:module";
-import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic } from "sql.js";
+import type { Database as SqlJsDatabase, SqlJsStatic } from "sql.js";
+import initSqlJs from "sql.js/dist/sql-wasm-inline.js";
 
 export type PublicUser = {
   id: number;
@@ -32,8 +32,6 @@ export type AppDatabase = {
   prepare: (sql: string) => Statement;
 };
 
-const require = createRequire(import.meta.url);
-
 const canWrite = (directory: string) => {
   try {
     fs.mkdirSync(directory, { recursive: true });
@@ -54,14 +52,6 @@ const resolveDataRoot = () => {
 };
 
 const dbPath = () => path.join(dataRoot, "portrait.sqlite");
-
-const wasmPath = () => {
-  try {
-    return require.resolve("sql.js/dist/sql-wasm.wasm");
-  } catch {
-    return path.join(process.cwd(), "node_modules", "sql.js", "dist", "sql-wasm.wasm");
-  }
-};
 
 let dataRoot = resolveDataRoot();
 let engine: SqlJsStatic | null = null;
@@ -104,8 +94,7 @@ const migrate = (db: SqlJsDatabase) => {
 
 const loadEngine = async () => {
   if (engine) return engine;
-  const wasmBinary = fs.readFileSync(wasmPath());
-  engine = await initSqlJs({ wasmBinary });
+  engine = await initSqlJs();
   return engine;
 };
 

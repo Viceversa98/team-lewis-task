@@ -4,6 +4,3 @@
 
 [build.environment]
   NODE_VERSION = "20"
-
-[functions]
-  included_files = ["node_modules/sql.js/dist/sql-wasm.wasm"]
