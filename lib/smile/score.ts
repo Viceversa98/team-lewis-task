@@ -1,3 +1,5 @@
+import { MAX_MESH_POINTS, MIN_MESH_POINTS } from "@/lib/smile/mesh";
+
 export type Landmark = {
   x: number;
   y: number;
@@ -10,7 +12,6 @@ export type ScoreOutcome =
   | { ok: true; score: number }
   | { ok: false; reason: ScoreFailure };
 
-const LANDMARK_COUNT = 478;
 const MOUTH_LEFT = 61;
 const MOUTH_RIGHT = 291;
 const LIP_UPPER = 13;
@@ -45,7 +46,11 @@ const distance = (left: Landmark, right: Landmark) =>
 export const scoreLandmarks = (input: unknown): ScoreOutcome => {
   if (!Array.isArray(input)) return { ok: false, reason: "payload" };
   if (input.length === 0) return { ok: false, reason: "no-face" };
-  if (input.length !== LANDMARK_COUNT || !input.every(isLandmark)) {
+  if (
+    input.length < MIN_MESH_POINTS ||
+    input.length > MAX_MESH_POINTS ||
+    !input.every(isLandmark)
+  ) {
     return { ok: false, reason: "payload" };
   }
 

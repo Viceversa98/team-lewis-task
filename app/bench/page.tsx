@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import { BenchApp } from "@/components/bench-app";
 import { BenchFallback } from "@/components/bench-fallback";
-import { BenchWorkspace } from "@/components/bench-workspace";
 import { getCurrentUser } from "@/lib/auth/session";
 import { listPortraits } from "@/lib/db";
 
@@ -15,7 +15,7 @@ const BenchContent = async () => {
     createdAt: portrait.createdAt,
   }));
 
-  return <BenchWorkspace name={user.name} readings={readings} />;
+  return <BenchApp name={user.name} readings={readings} />;
 };
 
 const BenchPage = () => (

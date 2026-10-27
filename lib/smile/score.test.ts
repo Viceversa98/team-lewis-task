@@ -54,9 +54,24 @@ describe("smile score", () => {
       ok: false,
       reason: "payload",
     });
+    expect(scoreLandmarks(neutralFace().slice(0, 467))).toEqual({
+      ok: false,
+      reason: "payload",
+    });
+    expect(scoreLandmarks([...neutralFace(), { x: 0.5, y: 0.5 }])).toEqual({
+      ok: false,
+      reason: "payload",
+    });
     expect(scoreLandmarks("nope")).toEqual({ ok: false, reason: "payload" });
     expect(scoreLandmarks(far)).toEqual({ ok: false, reason: "payload" });
     expect(scoreLandmarks([])).toEqual({ ok: false, reason: "no-face" });
     expect(scoreLandmarks(slight)).toEqual({ ok: true, score: 34 });
+  });
+
+  it("scores a 468-point tensorflow mesh", () => {
+    expect(scoreLandmarks(neutralFace().slice(0, 468))).toEqual({
+      ok: true,
+      score: 34,
+    });
   });
 });

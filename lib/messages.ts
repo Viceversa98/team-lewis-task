@@ -19,6 +19,12 @@ export const USE_SMALLER =
 export const FACE_READER_FAILED =
   "The face reader did not start. Refresh the page and upload the portrait again.";
 
+export const CAMERA_BLOCKED =
+  "The camera is blocked. Allow camera access, or upload a portrait instead.";
+
+export const CAMERA_FAILED =
+  "The camera did not start. Try again, or upload a portrait instead.";
+
 export const ENTER_NAME = "Name is empty. Enter the name for this account.";
 
 export const NAME_LONG = "Name is too long. Use 80 characters or fewer.";
