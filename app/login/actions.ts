@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { initialAccountState, type AccountState } from "@/lib/auth/account-state";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { createSession } from "@/lib/auth/session";
@@ -9,6 +10,7 @@ import {
   ENTER_PASSWORD,
   PASSWORD_LONG,
   SIGN_IN_FAILED,
+  STORE_FAILED,
   USE_EMAIL,
 } from "@/lib/messages";
 
@@ -33,7 +35,13 @@ export const login = async (
   if (password.length === 0) return { error: ENTER_PASSWORD, values };
   if (password.length > 200) return { error: PASSWORD_LONG, values };
 
-  const user = findUserByEmail(email);
+  await connection();
+  let user;
+  try {
+    user = await findUserByEmail(email);
+  } catch {
+    return { error: STORE_FAILED, values };
+  }
   if (!user) {
     spendPasswordTime(password);
     return { error: SIGN_IN_FAILED, values };
@@ -42,6 +50,10 @@ export const login = async (
     return { error: SIGN_IN_FAILED, values };
   }
 
-  await createSession(user.id);
+  try {
+    await createSession(user.id);
+  } catch {
+    return { error: STORE_FAILED, values };
+  }
   redirect("/bench");
 };

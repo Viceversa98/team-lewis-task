@@ -61,7 +61,7 @@ export const readSmile = async (
   }
 
   const saved = savePortraitFile(bytes, image.kind);
-  const readingId = insertPortrait({
+  const readingId = await insertPortrait({
     userId: user.id,
     filePath: saved.relativePath,
     score: scored.score,
